@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -20,16 +20,30 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
+      name="library"
+      options={{
+        title: 'Library',
+        tabBarIcon: ({ color }) => <Ionicons size={28} name="library" color={color} />,
+      }}
+    />
+    <Tabs.Screen
+    name="favourites"
+    options={{
+      title: 'Favourites',
+      tabBarIcon: ({ color }) => <Ionicons size={28} name="heart-outline" color={color} />,
+    }}
+  />
+  <Tabs.Screen
+  name="quiz"
+  options={{
+    title: 'Quiz',
+    tabBarIcon: ({ color }) => <Ionicons size={28} name="extension-puzzle" color={color} />,
+  }}
+/>
     </Tabs>
   );
 }
