@@ -1,11 +1,15 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from 'react-native-paper';
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import PDFRenderer from '@/components/ui/pdfRenderer';
+import { useRouter } from 'expo-router';
 export default function LibraryScreen() {
   const [files, setFiles] = useState<string[]>([]);
+  const [currentOpenedFile, setCurrentOpenedFile] = useState<string | null>(null);
+  const router = useRouter();
   const persistFile = async (tempUri: string, fileName: string) => {
     const permanentUri = FileSystem.documentDirectory + fileName;
 
@@ -41,8 +45,9 @@ export default function LibraryScreen() {
   const readFile = async (fileUri: string) => {
     try {
       const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.UTF8,
+        encoding: FileSystem.EncodingType.Base64,
       });
+      console.log('wow', fileContent.substring(0, 200)); // Log first 100 characters
       return fileContent;
     }
     catch (error) {
@@ -52,13 +57,12 @@ export default function LibraryScreen() {
   const getAllFiles = async () => {
     const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory || '');
     setFiles(files.filter(file => file.endsWith('.pdf') || file.endsWith('.docx') || file.endsWith('.epub')));
-    console.log('Files in document directory:', files);
   }
   useEffect(() => {
     getAllFiles();
   }
     , []);
-  
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1 }}>
@@ -70,25 +74,26 @@ export default function LibraryScreen() {
               <Button key={index} mode="outlined" className="my-1" onPress={() => {
                 console.log('Selected file:', file);
                 const fileUri = FileSystem.documentDirectory + file;
-                readFile(fileUri).then(content => {
-                  console.log('File content:', content);
-                }).catch(error => {
-                  console.error('Error reading file content:', error);
-                }
-                );
+                console.log('File URI:', fileUri);
+                router.push(
+                  {
+                    pathname: '/library/[id]',
+                    params: { id: fileUri}
+                  }
+                )
               }
               }>
-              <View key={index}>
-                <Text className="text-lg text-gray-800">{file}</Text>
-              </View>
+                <View key={index}>
+                  <Text className="text-lg text-gray-800">{file}</Text>
+                </View>
               </Button>
             ))
           ) :
             (
-          <View className="">
-            <Text className="text-lg text-gray-600">No items in your library yet.</Text>
-          </View>
-          )}
+              <View className="">
+                <Text className="text-lg text-gray-600">No items in your library yet.</Text>
+              </View>
+            )}
           <View className="flex flex-row gap-3 items-center ">
             <Button mode="contained" onPress={() => {
               pickDocument();
