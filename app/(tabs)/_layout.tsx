@@ -24,12 +24,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-      name="library"
+      name="library/index"
       options={{
         title: 'Library',
         tabBarIcon: ({ color }) => <Ionicons size={28} name="library" color={color} />,
       }}
     />
+    <Tabs.Screen
+    name="library/[id]"
+    options={{
+      title: 'Reading',
+      tabBarIcon: ({color}) => <Ionicons size={28} name="book-sharp" color={color} style={{display: 'none'}} />,
+    }}
+  />
     <Tabs.Screen
     name="favourites"
     options={{
