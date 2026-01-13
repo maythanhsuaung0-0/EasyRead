@@ -24,33 +24,33 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-      name="library/index"
-      options={{
-        title: 'Library',
-        tabBarIcon: ({ color }) => <Ionicons size={28} name="library" color={color} />,
-      }}
-    />
-    <Tabs.Screen
-    name="library/[id]"
-    options={{
-      title: 'Reading',
-      tabBarIcon: ({color}) => <Ionicons size={28} name="book-sharp" color={color} style={{display: 'none'}} />,
-    }}
-  />
-    <Tabs.Screen
-    name="favourites"
-    options={{
-      title: 'Favourites',
-      tabBarIcon: ({ color }) => <Ionicons size={28} name="heart-outline" color={color} />,
-    }}
-  />
-  <Tabs.Screen
-  name="quiz"
-  options={{
-    title: 'Quiz',
-    tabBarIcon: ({ color }) => <Ionicons size={28} name="extension-puzzle" color={color} />,
-  }}
-/>
+        name="library/index"
+        options={{
+          title: 'Library',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="library" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="library/[id]"
+        options={{
+          title: 'Reading',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="book-sharp" color={color}/>,
+        }}
+      />
+      <Tabs.Screen
+        name="favourites"
+        options={{
+          title: 'Favourites',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="heart-outline" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="quiz"
+        options={{
+          title: 'Quiz',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="extension-puzzle" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
