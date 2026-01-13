@@ -1,28 +1,90 @@
-import { View, Text,StyleSheet,Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
 import Pdf from 'react-native-pdf';
-export default function PDFRenderer({ fileUri}: { fileUri: string }) {
-  const source = { uri: fileUri ,cache: true};
-  console.log('Rendering PDF from URI:', fileUri);
+import Ionicons from '@expo/vector-icons/Ionicons';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { useRouter } from 'expo-router';
+import {encodeToBase64, PDFDocument, PDFName} from 'pdf-lib';
+export default function PDFRenderer({ fileUri }: { fileUri: string }) {
+  const router = useRouter()
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(0);
+  const [tableOfContents, setTableOfContents] = useState<any>(null);
+  const source = { uri: fileUri, cache: true };
+  const getTableOfContents = async (fileUri: string) => {
+    try{
+      const existingPdfBytes = await fetch(fileUri).then(res => res.arrayBuffer());
+      const pdf = await PDFDocument.load(existingPdfBytes);
+      const outlines = pdf.catalog.get(PDFName.of('Outlines'));
+      console.log('outlines',outlines);
+      return outlines;
+    }
+    catch(error){
+      console.error('Error getting table of contents:', error);
+      return null;
+    }
+  }
   return (
+    <View className="relative">
+      <View className="h-20 flex justify-center px-8 border-b border-gray-200">
+        <View className="flex flex-row items-center gap-2">
+          <Pressable onPress={() => { router.navigate("/library") }} className="p-2">
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </Pressable>
+          <Pressable onPress={() => { 
+            activeTool === 'list' ? setActiveTool(null) : setActiveTool('list')
+          }}
+          className={activeTool === 'list' ? "bg-gray-200 p-2 rounded-full" : "p-2"}>
+            <Ionicons name="list" size={24} color="black" />
+          </Pressable>
+          <Pressable onPress={() => { }} className="ml-auto p-2">
+            <AntDesign name="highlight" size={24} color="black" />
+          </Pressable>
+          <Pressable onPress={() => { }} className="p-2">
+            <Ionicons name="extension-puzzle" size={24} color="black" />
+          </Pressable>
+        </View>
+      </View>
+      <View className="border rounded-md w-24 absolute bottom-7 left-1/3 ml-5 z-50 bg-black/80 p-2 flex items-center justify-center">
+        <Text className='text-white'>{currentPage} of {totalPages}</Text>
+      </View>
+      {activeTool === 'list' && (
+        <View className="absolute top-20 left-0 w-2/3 h-3/4 bg-white z-50 border-r border-gray-200 p-4">
+          <Text className="font-bold text-lg mb-4">Table of Contents</Text>
+          {tableOfContents ? (
+            <Text>{JSON.stringify(tableOfContents)}</Text>
+          ) : (
+            <Text>No Table of Contents found.</Text>
+          )}
+        </View>
+      )}
       <Pdf
         source={source}
-        onLoadComplete={(numberOfPages, filePath) => {
+        onLoadComplete={(numberOfPages,filepath,{width,height},tableOfContents) => {
           console.log(`Number of pages: ${numberOfPages}`);
+          console.log('table of content',tableOfContents)
+          setTotalPages(numberOfPages);
+          const toc = getTableOfContents(fileUri);
+          setTableOfContents(toc);
+
         }}
         onPageChanged={(page, numberOfPages) => {
           console.log(`Current page: ${page}`);
+          setCurrentPage(page);
         }}
         style={styles.pdf}
         onError={(error) => {
           console.log('PDF rendering error:', error);
         }}
         showsVerticalScrollIndicator={true}
-
       />
+    </View>
   );
 }
+
 const styles = StyleSheet.create({
-    pdf: {
+  pdf: {
     flex: 1,
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
