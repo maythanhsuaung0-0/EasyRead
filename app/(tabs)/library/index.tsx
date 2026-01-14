@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from 'react-native-paper';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, Image,ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import PDFRenderer from '@/components/ui/pdfRenderer';
+import PdfPageImage from 'react-native-pdf-page-image';
 import { useRouter } from 'expo-router';
 export default function LibraryScreen() {
   const [files, setFiles] = useState<string[]>([]);
-  const [currentOpenedFile, setCurrentOpenedFile] = useState<string | null>(null);
+  const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>({});
   const router = useRouter();
   const persistFile = async (tempUri: string, fileName: string) => {
     const permanentUri = FileSystem.documentDirectory + fileName;
@@ -54,9 +54,44 @@ export default function LibraryScreen() {
       console.error('Error reading file:', error);
     }
   }
+const getThumbnailUri = async (fileName:string) => {
+  const fullPdfPath = `${FileSystem.documentDirectory}${fileName}`;
+  const thumbCachePath = `${FileSystem.cacheDirectory}${fileName}.png`;
+  const info = await FileSystem.getInfoAsync(thumbCachePath);
+  if (info.exists) {
+    return thumbCachePath; 
+  }
+  if (fileName.endsWith('.pdf')) {
+    try {
+      const result = await PdfPageImage.generate(fullPdfPath, 0, 0.5);
+      // Move the result to our organized cache path
+      await FileSystem.moveAsync({
+        from: result.uri,
+        to: thumbCachePath
+      });
+      return thumbCachePath;
+    } catch (e) {
+      console.error("Thumbnail failed", e);
+      return null; 
+    }
+  }
+  
+  return null; 
+};
   const getAllFiles = async () => {
+    const scale = 1.0;
     const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory || '');
-    setFiles(files.filter(file => file.endsWith('.pdf') || file.endsWith('.docx') || file.endsWith('.epub')));
+    const fileSelections = files.filter(file => file.endsWith('.pdf') || file.endsWith('.docx') || file.endsWith('.epub'))
+    for (const file of fileSelections) {
+      const thumbUri = await getThumbnailUri(file);
+      if (thumbUri) {
+        setFilePreviews(prev => ({ ...prev, [file]: thumbUri }));
+      }
+      else{
+        setFilePreviews(prev => ({ ...prev, [file]: '' }));
+    }
+    setFiles(fileSelections);
+  }
   }
   useEffect(() => {
     getAllFiles();
@@ -78,14 +113,17 @@ export default function LibraryScreen() {
                 router.push(
                   {
                     pathname: '/library/[id]',
-                    params: { id: fileUri}
+                    params: { id: fileUri }
                   }
                 )
               }
               }>
-                <View key={index}>
-                  <Text className="text-lg text-gray-800">{file}</Text>
-                </View>
+              <Image
+                source={filePreviews[file] ? { uri: filePreviews[file] } : require('../../../assets/images/icon.png')}
+                className="w-12 h-16 mr-4"
+              />
+              <Text className="text-lg">{file}</Text>
+
               </Button>
             ))
           ) :
@@ -104,4 +142,3 @@ export default function LibraryScreen() {
     </SafeAreaView>
   );
 }
-
