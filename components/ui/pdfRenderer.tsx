@@ -4,7 +4,6 @@ import Pdf from 'react-native-pdf';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useRouter } from 'expo-router';
-import {encodeToBase64, PDFDocument, PDFName} from 'pdf-lib';
 export default function PDFRenderer({ fileUri }: { fileUri: string }) {
   const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1);
