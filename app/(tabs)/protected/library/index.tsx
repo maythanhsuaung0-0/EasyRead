@@ -43,18 +43,7 @@ export default function LibraryScreen() {
       console.error('Error picking document:', error);
     }
   };
-  const readFile = async (fileUri: string) => {
-    try {
-      const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      console.log('wow', fileContent.substring(0, 200)); // Log first 100 characters
-      return fileContent;
-    }
-    catch (error) {
-      console.error('Error reading file:', error);
-    }
-  }
+
   const getThumbnailUri = async (fileName: string) => {
     const fullPdfPath = `${FileSystem.documentDirectory}${fileName}`;
     const thumbCachePath = `${FileSystem.cacheDirectory}${fileName}.png`;
@@ -131,7 +120,7 @@ export default function LibraryScreen() {
 
 
                     <Image
-                      source={filePreviews[file] ? { uri: filePreviews[file] } : require('../../../assets/images/icon.png')}
+                      source={filePreviews[file] ? { uri: filePreviews[file] } : require('../../../../assets/images/icon.png')}
                       className="w-28 h-32 mr-4 rounded-sm self-center border border-gray-200 object-top"
                     />
                   </Pressable>
@@ -144,7 +133,8 @@ export default function LibraryScreen() {
                       <Pressable className="p-3">
                         <Ionicons name="trash-outline" size={20} color="#000" />
                       </Pressable>
-                      <Pressable className="p-3"> 
+                      <Pressable className="p-3"
+                > 
                         <Ionicons name="heart-outline" size={20} color="#000" />
                       </Pressable>
                     </View>

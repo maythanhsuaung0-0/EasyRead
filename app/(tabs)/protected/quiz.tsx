@@ -1,6 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
-import TopNav from '@/components/ui/topnav';
+import { View, Text,   ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function QuizScreen() {
   return (

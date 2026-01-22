@@ -1,56 +1,22 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { useAuth } from '@clerk/clerk-expo'
+import { Stack } from 'expo-router'
 
-import { HapticTab } from '@/components/haptic-tab';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function AppLayout() {
+  // useAuth hook from Clerk SDK
+  const { isSignedIn } = useAuth()
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="library/index"
-        options={{
-          title: 'Library',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="library" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="library/[id]"
-        options={{
-          title: 'Reading',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="book-sharp" color={color}/>,
-        }}
-      />
-      <Tabs.Screen
-        name="favourites"
-        options={{
-          title: 'Favourites',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="heart-outline" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="quiz"
-        options={{
-          title: 'Quiz',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="extension-puzzle" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* Public routes */}
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="signUp" />
+      </Stack.Protected>
+
+      {/* Protected routes */}
+      <Stack.Protected guard={isSignedIn!}>
+        <Stack.Screen name="protected" />
+      </Stack.Protected>
+    </Stack>
+  )
 }
