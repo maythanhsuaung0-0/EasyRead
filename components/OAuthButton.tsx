@@ -6,6 +6,7 @@ import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
 import {View,Platform, Text, TouchableOpacity } from 'react-native'
 import AntDesign from '@expo/vector-icons/AntDesign'
+import { useRouter } from 'expo-router'
 
 export const useWarmUpBrowser = () => {
   useEffect(() => {
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function OAuthButton({ strategy, children }: Props) {
+  const router = useRouter()
   useWarmUpBrowser()
   // useSSO hook from Clerk SDK to support various SSO providers
   const { startSSOFlow } = useSSO()
@@ -33,16 +35,21 @@ export default function OAuthButton({ strategy, children }: Props) {
     try {
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy,
-        redirectUrl: AuthSession.makeRedirectUri(),
+        redirectUrl: AuthSession.makeRedirectUri({
+             scheme:'easyread',
+             path:'oauth-native-callback'
+        }),
       })
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId })
+        router.replace('/')
       } else {
         throw new Error('Failed to create session')
       }
     } catch (err) {
       console.error('SSO Sign-In Error:')
+      console.log(err)
     }
   }, [startSSOFlow, strategy])
 

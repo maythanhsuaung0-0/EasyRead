@@ -3,8 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function QuizScreen() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1 }}>
+    <SafeAreaView>
+      <ScrollView>
         <View className="px-10 py-16">
           <Text className="font-bold text-3xl ">Quizzes</Text>
           <Text className="mt-4 text-lg text-gray-600">Test your knowledge of the books with our quizzes!</Text>
