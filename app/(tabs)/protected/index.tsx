@@ -6,10 +6,11 @@ import { useUser } from '@clerk/clerk-expo';
 
 export default function HomeScreen() {
   const {user} = useUser();
+  const extractedFirstName = user?.primaryEmailAddress?.emailAddress?.split('@')[0] || "User";
   return (
    <SafeAreaView style={{flex:1}} > 
    <ScrollView style={{flex:1}}>
-     <TopNav userName={user?.firstName || ""}
+     <TopNav userName={user?.firstName || extractedFirstName} 
         avatarUrl={user?.imageUrl || undefined}
      />
        </ScrollView>
