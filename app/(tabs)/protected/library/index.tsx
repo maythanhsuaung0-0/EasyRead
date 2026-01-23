@@ -43,18 +43,7 @@ export default function LibraryScreen() {
       console.error('Error picking document:', error);
     }
   };
-  const readFile = async (fileUri: string) => {
-    try {
-      const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      console.log('wow', fileContent.substring(0, 200)); // Log first 100 characters
-      return fileContent;
-    }
-    catch (error) {
-      console.error('Error reading file:', error);
-    }
-  }
+
   const getThumbnailUri = async (fileName: string) => {
     const fullPdfPath = `${FileSystem.documentDirectory}${fileName}`;
     const thumbCachePath = `${FileSystem.cacheDirectory}${fileName}.png`;
@@ -79,6 +68,7 @@ export default function LibraryScreen() {
 
     return null;
   };
+
   const getAllFiles = async () => {
     const scale = 1.0;
     const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory || '');
@@ -98,40 +88,40 @@ export default function LibraryScreen() {
     getAllFiles();
   }
     , []);
+  const onRead = (file:string) => {
+    console.log('Selected file:', file);
+    const fileUri = FileSystem.documentDirectory + file;
+    console.log('File URI:', fileUri);
+    router.push(
+      {
+        pathname: '/protected/library/[id]',
+        params: { id: fileUri }
+      }
+    )
+  }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1 }}>
+    <SafeAreaView>
+      <ScrollView>
         <View className="px-10 py-16 grid gap-2">
-        <View className="flex flex-row items-center justify-between">
-          <Text className="font-bold text-3xl ">Your Library</Text>
-          <View className="flex flex-row gap-3 items-center">
-            <Button mode="contained" onPress={() => {
-              pickDocument();
-            }} icon="cloud-upload">Upload Books</Button>
+          <View className="flex flex-row items-center justify-between">
+            <Text className="font-bold text-3xl ">Your Library</Text>
+            <View className="flex flex-row gap-3 items-center">
+              <Button mode="contained" onPress={() => {
+                pickDocument();
+              }} icon="cloud-upload">Upload Books</Button>
+            </View>
           </View>
-        </View>
           {/* Add your library content here */}
           <View className="flex flex-col gap-4 mb-4 mt-6">
             {files.length > 0 ? (
               files.map((file, index) => (
                 <View key={index} className="flex flex-row gap-2">
-                  <Pressable className="my-1" onPress={() => {
-                    console.log('Selected file:', file);
-                    const fileUri = FileSystem.documentDirectory + file;
-                    console.log('File URI:', fileUri);
-                    router.push(
-                      {
-                        pathname: '/library/[id]',
-                        params: { id: fileUri }
-                      }
-                    )
-                  }
-                  }>
+                  <Pressable className="my-1" onPress={onRead}>
 
 
                     <Image
-                      source={filePreviews[file] ? { uri: filePreviews[file] } : require('../../../assets/images/icon.png')}
+                      source={filePreviews[file] ? { uri: filePreviews[file] } : require('../../../../assets/images/icon.png')}
                       className="w-28 h-32 mr-4 rounded-sm self-center border border-gray-200 object-top"
                     />
                   </Pressable>
@@ -144,7 +134,8 @@ export default function LibraryScreen() {
                       <Pressable className="p-3">
                         <Ionicons name="trash-outline" size={20} color="#000" />
                       </Pressable>
-                      <Pressable className="p-3"> 
+                      <Pressable className="p-3"
+                      >
                         <Ionicons name="heart-outline" size={20} color="#000" />
                       </Pressable>
                     </View>
