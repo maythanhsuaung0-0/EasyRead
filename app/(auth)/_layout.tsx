@@ -1,11 +1,11 @@
+import { useAuth } from '@/hooks/authcontext'
 import { Redirect, Stack } from 'expo-router'
-import { useAuth } from '@clerk/clerk-expo'
 
 export default function AuthRoutesLayout() {
-  const { isSignedIn } = useAuth()
-
-  if (isSignedIn) {
-    return <Redirect href={'/(tabs)/protected'} />
+  const {user,session} = useAuth()
+  console.log("AuthRoutesLayout user:", user);
+  if (user && session) {
+  return <Redirect href={'/(tabs)/protected'} />
   }
 
   return (

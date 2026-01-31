@@ -29,7 +29,7 @@
       "bundler": "metro"
     },
     "plugins": [
-"@config-plugins/react-native-blob-util",
+      "@config-plugins/react-native-blob-util",
       "@config-plugins/react-native-pdf",
       "expo-router",
       [
@@ -43,7 +43,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,
