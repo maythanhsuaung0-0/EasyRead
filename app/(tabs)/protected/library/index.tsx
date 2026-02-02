@@ -7,7 +7,10 @@ import * as FileSystem from 'expo-file-system/legacy';
 import PdfPageImage from 'react-native-pdf-page-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { supabase } from '@/utils/supabase';
+import { useAuth } from '@/hooks/authcontext';
 export default function LibraryScreen() {
+  const { user } = useAuth()
   const [files, setFiles] = useState<string[]>([]);
   const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>({});
   const router = useRouter();
@@ -81,17 +84,41 @@ export default function LibraryScreen() {
       else {
         setFilePreviews(prev => ({ ...prev, [file]: '' }));
       }
-      setFiles(fileSelections);
     }
+    setFiles(fileSelections);
+    console.log('Files in library:', fileSelections);
+
   }
   useEffect(() => {
     getAllFiles();
   }
     , []);
-  const onRead = (file:string) => {
-    console.log('Selected file:', file);
+  const PostPdfMetadata = async (fileUri: string) => {
+    const bookTitle = fileUri.split('/').pop() || '';
+    console.log('Posting metadata for book:', fileUri);
+    try {
+      const { data, error } = await supabase
+        .from('reading_history')
+        .insert({
+          user_id: user?.id,
+          book_title: bookTitle,
+          author: 'Unknown',
+          started_at: new Date().toISOString(),
+          start_page: 1,
+          created_at: new Date().toISOString(),
+        });
+      if (error) {
+        console.error('Error posting PDF metadata:', error);
+      }
+    } catch (error) {
+      console.error('Error posting PDF metadata:', error);
+    }
+  }
+
+  const onRead = (file: string) => {
     const fileUri = FileSystem.documentDirectory + file;
     console.log('File URI:', fileUri);
+    PostPdfMetadata(fileUri);
     router.push(
       {
         pathname: '/protected/library/[id]',
@@ -117,7 +144,7 @@ export default function LibraryScreen() {
             {files.length > 0 ? (
               files.map((file, index) => (
                 <View key={index} className="flex flex-row gap-2">
-                  <Pressable className="my-1" onPress={onRead}>
+                  <Pressable className="my-1" onPress={()=>onRead(file)}>
 
 
                     <Image
