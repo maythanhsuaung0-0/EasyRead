@@ -1,13 +1,12 @@
 import { View,Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import { ThemedText } from '@/components/themed-text'
-import { useClerk, useUser } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAuth } from '@/hooks/authcontext'
 export default function SettingsScreen() {
-  const { user } = useUser()
-  const extractedFirstName = user?.primaryEmailAddress?.emailAddress?.split('@')[0] || 'User'
+  const { user,signOut} = useAuth()
   const router = useRouter()
-  const { signOut } = useClerk()
+  console.log('User in SettingsScreen:', user);
   const handleSignOut = async () => {
     await signOut()
     router.replace('/(auth)')
@@ -27,13 +26,13 @@ export default function SettingsScreen() {
             <View className='flex flex-row items-center gap-4'>
               <View>
                 <Image className='w-12 h-12 rounded-full block bg-transparent'
-                source={{ uri: user?.imageUrl || '' }} />
+                source={{ uri: user?.profile || '' }} />
               </View>
               <View>
                 <ThemedText type="defaultSemiBold">
-                  {user?.firstName || extractedFirstName} {user?.lastName}
+                {user?.name}
                 </ThemedText>
-                <ThemedText>{user?.emailAddresses[0].emailAddress}</ThemedText>
+                <ThemedText>{user?.email}</ThemedText>
               </View>
             </View>
 

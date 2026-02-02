@@ -3,7 +3,7 @@ import { Stack } from 'expo-router'
 
 export default function AppLayout() {
   const { user,session} = useAuth()
-
+  console.log('User in layout:', user)
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {/* Public routes */}

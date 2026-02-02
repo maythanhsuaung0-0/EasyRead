@@ -4,13 +4,11 @@ import Pdf from 'react-native-pdf';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useRouter } from 'expo-router';
-import { createSupabaseClient } from '@/utils/supabase';
-import { useAuth, useUser } from '@clerk/clerk-expo';
+import { supabase} from '@/utils/supabase';
+import { useAuth } from '@/hooks/authcontext';
 export default function PDFRenderer({ fileUri }: { fileUri: string }) {
   const router = useRouter()
-  const {getToken} = useAuth()
-  const {user} = useUser()
-  const supabase = createSupabaseClient(getToken())
+  const {user} = useAuth()
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(0);
@@ -26,8 +24,9 @@ export default function PDFRenderer({ fileUri }: { fileUri: string }) {
   }
   const fetchPdfMetadata = async (fileUri: string) => {
     const bookTitle = fileUri.split('/').pop() || '';
+    console.log('user',user)
     try{
-    const { data, error } = await supabase
+    const { data, error } = await supabase 
       .from('reading_history')
     .select('*').eq('book_title', bookTitle)
     .eq('user_id', user?.id)
@@ -42,6 +41,7 @@ export default function PDFRenderer({ fileUri }: { fileUri: string }) {
   }
   const PostPdfMetadata = async (fileUri: string) => {
     const bookTitle = fileUri.split('/').pop() || '';
+    console.log('Posting metadata for book:', bookTitle);
     try {
       const { data, error } = await supabase
         .from('reading_history')
@@ -49,7 +49,7 @@ export default function PDFRenderer({ fileUri }: { fileUri: string }) {
           user_id: user?.id,
           book_title: bookTitle,
           author: 'Unknown',
-          read_date: new Date().toISOString(),
+          started_at: new Date().toISOString(),
           start_page: 1,
           created_at: new Date().toISOString(),
         });
@@ -67,7 +67,6 @@ export default function PDFRenderer({ fileUri }: { fileUri: string }) {
       goToPage(metadata.end_page);
     }
     else{
-      PostPdfMetadata(fileUri);
     }
   }
   , [fileUri]);
