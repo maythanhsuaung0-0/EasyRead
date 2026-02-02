@@ -4,17 +4,22 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { PaperProvider } from 'react-native-paper';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import {ClerkProvider} from "@clerk/clerk-expo";
 import { tokenCache } from '@clerk/clerk-expo/token-cache'
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { AuthProvider } from '@/hooks/authcontext';
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+   GoogleSignin.configure({
+    webClientId:process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+    offlineAccess: true,
+   });
 
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <AuthProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <PaperProvider>
         <Stack>
@@ -25,6 +30,6 @@ export default function RootLayout() {
         <StatusBar style="auto" />
       </PaperProvider>
     </ThemeProvider>
-    </ClerkProvider>
+    </AuthProvider>
   );
 }

@@ -1,65 +1,31 @@
-import { styles } from '@/constants/AuthStyles'
-import { useSSO } from '@clerk/clerk-expo'
-import { OAuthStrategy } from '@clerk/types'
-import * as AuthSession from 'expo-auth-session'
-import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
-import {View,Platform, Text, TouchableOpacity } from 'react-native'
-import AntDesign from '@expo/vector-icons/AntDesign'
 import { useRouter } from 'expo-router'
-
-export const useWarmUpBrowser = () => {
-  useEffect(() => {
-    if (Platform.OS === 'web') return
-    void WebBrowser.warmUpAsync()
-    return () => {
-      void WebBrowser.coolDownAsync()
-    }
-  }, [])
-}
-WebBrowser.maybeCompleteAuthSession()
-
+import {
+  statusCodes,
+  isErrorWithCode,
+  isSuccessResponse,
+  GoogleSignin, GoogleSigninButton
+} from '@react-native-google-signin/google-signin'
+import { useAuth } from '@/hooks/authcontext'
 interface Props {
   // The OAuthStrategy type from Clerk allows you to specify the provider you want to use in this specific instance of the OAuthButton component
-  strategy: OAuthStrategy
+  strategy: string,
   children: React.ReactNode
 }
 
 export default function OAuthButton({ strategy, children }: Props) {
   const router = useRouter()
-  useWarmUpBrowser()
-  // useSSO hook from Clerk SDK to support various SSO providers
-  const { startSSOFlow } = useSSO()
-
-  const onPress = useCallback(async () => {
-    try {
-      const { createdSessionId, setActive } = await startSSOFlow({
-        strategy,
-        redirectUrl: AuthSession.makeRedirectUri({
-             scheme:'easyread',
-             path:'oauth-native-callback'
-        }),
-      })
-
-      if (createdSessionId) {
-        setActive!({ session: createdSessionId })
-        router.replace('/')
-      } else {
-        throw new Error('Failed to create session')
-      }
-    } catch (err) {
-      console.error('SSO Sign-In Error:')
-      console.log(err)
-    }
-  }, [startSSOFlow, strategy])
+  const {setUser,signInWithGoogle} = useAuth();
+  const onPress = async () => {
+     await signInWithGoogle(); 
+  }
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.button}>
-      <Text style={styles.buttonText}>{children}</Text>
-      <View className="ml-2">   
-        <AntDesign name="google" size={24} color="white" />
-      </View>
-
-    </TouchableOpacity>
+    <GoogleSigninButton
+      style={{ width: 192, height: 48, marginBottom: 20 }}
+      size={GoogleSigninButton.Size.Wide}
+      color={GoogleSigninButton.Color.Dark}
+      onPress={onPress}
+    />
   )
 }

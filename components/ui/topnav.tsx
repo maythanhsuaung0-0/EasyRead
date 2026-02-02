@@ -9,7 +9,7 @@ interface TopNavProps {
 export default function TopNav({ userName, avatarUrl }: TopNavProps) {
   const router = useRouter()
   return <View className="py-16 px-10 flex flex-row gap-4 justify-between">
-    <Text className="text-3xl font-bold">Hello {userName}</Text>
+    <Text className="text-3xl font-bold">Hello {userName?.split(' ')[0]}</Text>
     <View className="flex flex-row gap-4 items-center">
       <View className="rounded-full border-4 border-blue-100 h-10 w-10 flex items-center justify-center">
         <Text className="text-blue-400 font-bold">0</Text>
