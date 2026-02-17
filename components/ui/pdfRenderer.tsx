@@ -62,7 +62,12 @@ export default function PDFRenderer({ fileUri }: { fileUri: string }) {
   useFocusEffect(
     useCallback(() => {
       let isfocused = true;
+      try{
       fetchPdfMetadata(fileUri);
+      }
+      catch(error){
+        console.error('Error in useFocusEffect:', error);
+      }
       return () => {
         isfocused = false;
         console.log('Screen unfocused, updating metadata with current page:', currentPageRef.current);
@@ -123,8 +128,6 @@ export default function PDFRenderer({ fileUri }: { fileUri: string }) {
       ref={pdfRef}
         source={source}
         onLoadComplete={(numberOfPages,filepath,{width,height},tableOfContents) => {
-          console.log(`Number of pages: ${numberOfPages}`);
-          console.log('table of content',tableOfContents)
           setTotalPages(numberOfPages);
           const toc = tableOfContents?.map((item: any) => ({
             title:item.title,

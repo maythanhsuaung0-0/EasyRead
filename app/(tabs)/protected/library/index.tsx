@@ -4,16 +4,18 @@ import { View, Text, Image, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import PdfPageImage from 'react-native-pdf-page-image';
+import { getAllFiles, getThumbnailUri} from '@/utils/fileMethods';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { useAuth } from '@/hooks/authcontext';
+import { addBookMetaData } from '@/utils/books_crud';
 export default function LibraryScreen() {
   const { user } = useAuth()
   const [files, setFiles] = useState<string[]>([]);
   const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>({});
   const router = useRouter();
+
   const persistFile = async (tempUri: string, fileName: string) => {
     const permanentUri = FileSystem.documentDirectory + fileName;
 
@@ -25,6 +27,25 @@ export default function LibraryScreen() {
 
     return permanentUri;
   };
+  // delete from internal storage
+  const deleteFile = async (fileName: string) => {
+    const fileUri = FileSystem.documentDirectory + fileName;
+    const favUri = FileSystem.documentDirectory + 'favourites/' + fileName;
+    await FileSystem.deleteAsync(fileUri);
+    await FileSystem.deleteAsync(favUri).catch(() => {
+      console.log('File not found in favourites, skipping deletion');
+    });
+    setFiles((prevFiles) => prevFiles.filter((file) => file !== fileName));
+  };
+  // save file to internal storage with a folder name called favourites
+  const saveToFavourites = async (fileName: string) => {
+    const fileUri = FileSystem.documentDirectory + fileName;
+    const favUri = FileSystem.documentDirectory + 'favourites/' + fileName;
+    await FileSystem.copyAsync({
+      from: fileUri,
+      to: favUri
+    });
+  }
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -39,6 +60,19 @@ export default function LibraryScreen() {
         console.log('URI:', uri);
         const permanentUri = await persistFile(uri, name);
         setFiles((prevFiles) => [...prevFiles, permanentUri.split('/').pop() || name]);
+        const previewUri = await getThumbnailUri(name)
+        console.log('Generated preview URI:', previewUri);
+         const response = await addBookMetaData({
+          user_id: user?.id || '',
+          title: name,
+          preview_url: previewUri?('/cache/' + name + '.png'):null,
+          file_url: name,
+          is_favorite: false,
+          author: 'Unknown',
+          published_date: null,
+         })
+         console.log('Added book metadata:', response);
+
       } else {
         console.log('User canceled the picker');
       }
@@ -46,53 +80,19 @@ export default function LibraryScreen() {
       console.error('Error picking document:', error);
     }
   };
-
-  const getThumbnailUri = async (fileName: string) => {
-    const fullPdfPath = `${FileSystem.documentDirectory}${fileName}`;
-    const thumbCachePath = `${FileSystem.cacheDirectory}${fileName}.png`;
-    const info = await FileSystem.getInfoAsync(thumbCachePath);
-    if (info.exists) {
-      return thumbCachePath;
-    }
-    if (fileName.endsWith('.pdf')) {
-      try {
-        const result = await PdfPageImage.generate(fullPdfPath, 0, 0.5);
-        // Move the result to our organized cache path
-        await FileSystem.moveAsync({
-          from: result.uri,
-          to: thumbCachePath
-        });
-        return thumbCachePath;
-      } catch (e) {
-        console.error("Thumbnail failed", e);
-        return null;
-      }
-    }
-
-    return null;
-  };
-
-  const getAllFiles = async () => {
-    const scale = 1.0;
-    const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory || '');
-    const fileSelections = files.filter(file => file.endsWith('.pdf') || file.endsWith('.docx') || file.endsWith('.epub'))
-    for (const file of fileSelections) {
-      const thumbUri = await getThumbnailUri(file);
-      if (thumbUri) {
-        setFilePreviews(prev => ({ ...prev, [file]: thumbUri }));
-      }
-      else {
-        setFilePreviews(prev => ({ ...prev, [file]: '' }));
-      }
-    }
-    setFiles(fileSelections);
-    console.log('Files in library:', fileSelections);
-
-  }
+const loadData = async () => {
+  const { files, previews } = await getAllFiles(false,['.pdf', '.docx']);
+  
+  setFiles(files);
+  setFilePreviews(previews);
+};
   useEffect(() => {
-    getAllFiles();
+    (async () => {
+      loadData();
+    })();
   }
     , []);
+
   const PostPdfMetadata = async (fileUri: string) => {
     const bookTitle = fileUri.split('/').pop() || '';
     console.log('Posting metadata for book:', fileUri);
@@ -144,7 +144,7 @@ export default function LibraryScreen() {
             {files.length > 0 ? (
               files.map((file, index) => (
                 <View key={index} className="flex flex-row gap-2">
-                  <Pressable className="my-1" onPress={()=>onRead(file)}>
+                  <Pressable className="my-1" onPress={() => onRead(file)}>
 
 
                     <Image
@@ -155,13 +155,14 @@ export default function LibraryScreen() {
                   <View className="flex-1  flex-col justify-between">
                     <Text className="text-lg mt-4 self-start">{file}</Text>
                     <View className="flex flex-row mt-auto mb-2">
-                      <Pressable className="p-3">
+                      <Pressable className="p-3" onPress={() => onRead(file)}>
                         <Ionicons name="book-outline" size={20} color="#000" />
                       </Pressable>
-                      <Pressable className="p-3">
+                      <Pressable className="p-3" onPress={() => deleteFile(file)}>
                         <Ionicons name="trash-outline" size={20} color="#000" />
                       </Pressable>
                       <Pressable className="p-3"
+                        onPress={() => saveToFavourites(file)}
                       >
                         <Ionicons name="heart-outline" size={20} color="#000" />
                       </Pressable>

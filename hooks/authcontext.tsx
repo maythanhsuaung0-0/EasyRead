@@ -38,9 +38,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Simulate fetching session from Supabase
     const fetchSession = async () => {
       // Replace with actual Supabase session fetching logic
+      try {
       const supabaseSession = await supabase.auth.getSession();
       setSession(supabaseSession?.data?.session);
       setLoading(false);
+      } catch (error) {
+        console.error('Error while fetching session:', error);
+        setLoading(false);
+      }
+
     }
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {

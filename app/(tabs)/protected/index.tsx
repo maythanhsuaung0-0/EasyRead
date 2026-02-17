@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/authcontext';
 
 export default function HomeScreen() {
-  const {user} = useAuth();
+  const { user } = useAuth();
   console.log('User in HomeScreen:', user);
   return (
    <SafeAreaView style={{flex:1}} > 
